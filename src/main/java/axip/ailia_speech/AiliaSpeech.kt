@@ -97,6 +97,17 @@ class AiliaSpeech(
          */
         const val AILIA_SPEECH_MODEL_TYPE_WHISPER_MULTILINGUAL_LARGE_V3 = (5)
 
+        /**
+        * \~japanese
+        * @def AILIA_SPEECH_MODEL_TYPE_SENSEVOICE_SMALL
+        * @brief SenseVoice Small model
+        *
+        * \~english
+        * @def AILIA_SPEECH_MODEL_TYPE_SENSEVOICE_SMALL
+        * @brief SenseVoice Small model
+        */
+        const val AILIA_SPEECH_MODEL_TYPE_SENSEVOICE_SMALL = (10)
+
         /****************************************************************
          * タスク定義
          **/
