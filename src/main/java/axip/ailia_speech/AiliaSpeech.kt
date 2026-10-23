@@ -164,6 +164,11 @@ class AiliaSpeech(
     /**
      * Opens the speech recognition model files.
      *
+     * To run Whisper on the Qualcomm NPU (QNN), pass the same .qnn package as both encoderPath and
+     * decoderPath. modelType must match the package. Bundle libailia_speech_qnn.so and the Qualcomm
+     * QNN runtime libraries (libQnnHtp.so, libQnnSystem.so, libQnnHtpV<arch>Stub.so,
+     * libQnnHtpV<arch>Skel.so) in jniLibs/arm64-v8a.
+     *
      * @param encoderPath Path to the encoder model file.
      * @param decoderPath Path to the decoder model file.
      * @param modelType Type of the model, one of the AILIA_SPEECH_MODEL_TYPE_* constants.
