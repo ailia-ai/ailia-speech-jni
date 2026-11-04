@@ -146,6 +146,19 @@ class AiliaSpeech(
         init {
             System.loadLibrary("ailia_speech")
         }
+
+        /**
+         * Returns the QNN model name for the current device (for example, "sm8475").
+         *
+         * The name matches the SoC name in the .qnn package filenames
+         * (for example, whisper-tiny-sm8475-int16.qnn), so it can be used to
+         * select the package to download. No instance needs to be created.
+         * This call lazily loads the QNN plug-in (libailia_speech_qnn.so).
+         *
+         * @return The QNN model name, or null if the QNN plug-in is absent or the SoC is unsupported.
+         */
+        @JvmStatic
+        external fun getQNNModelName(): String?
     }
 
     private var ailiaSpeech: Long = 0
@@ -176,6 +189,19 @@ class AiliaSpeech(
      */
     fun openModel(encoderPath: String, decoderPath: String, modelType: Int): Int {
         return openModelFile(ailiaSpeech, encoderPath, decoderPath, modelType)
+    }
+
+    /**
+     * Configures QNN graph switching to reduce resident HTP memory for large .qnn models.
+     *
+     * Call after creating the instance and before [openModel]. Switching may increase inference time.
+     * ONNX models are unaffected.
+     *
+     * @param enable true to enable, false to disable (default).
+     * @return 0 if successful, otherwise an error code.
+     */
+    fun setQNNGraphSwitching(enable: Boolean): Int {
+        return setQNNGraphSwitching(ailiaSpeech, if (enable) 1 else 0)
     }
 
     /**
@@ -276,6 +302,33 @@ class AiliaSpeech(
      */
     fun getBuffered(): Int {
         return getBuffered(ailiaSpeech)
+    }
+
+    /**
+     * Determines if the end of an utterance has been detected by VAD.
+     *
+     * Unlike [getBuffered], it does not return 1 just because 30 seconds
+     * worth of data has been accumulated. It returns 1 only when speech of
+     * speechSec or longer is followed by silence of noSpeechSec or longer.
+     * Use this method to recognize audio per utterance, such as waiting for
+     * voice commands.
+     *
+     * Silence before the utterance and noise shorter than speechSec are
+     * discarded, so speech after a long silence is recognized from its
+     * beginning. It also returns 1 without a boundary after
+     * [finalizeInputData] is called.
+     *
+     * While speech continues, data is accumulated until a boundary is
+     * detected. Since [transcribe] processes at most 30 seconds per call,
+     * speech longer than 30 seconds is processed by calling [transcribe]
+     * repeatedly while this method returns 1.
+     *
+     * [setSilentThreshold] must be called in advance.
+     *
+     * @return 1 if [transcribe] can be called, 0 otherwise, -1 on error.
+     */
+    fun getVadBuffered(): Int {
+        return getVadBuffered(ailiaSpeech)
     }
 
     /**
@@ -400,6 +453,8 @@ class AiliaSpeech(
 
     private external fun openModelFile(handle: Long, encoder_path: String, decoder_path: String, model_type: Int): Int
 
+    private external fun setQNNGraphSwitching(handle: Long, enable: Int): Int
+
     private external fun openVadFile(handle: Long, vad_pathL: String, vad_type: Int): Int
 
     private external fun openDictionaryFile(handle: Long, dictionary_path: String, dictionary_type: Int): Int
@@ -415,6 +470,8 @@ class AiliaSpeech(
     private external fun finalizeInputData(handle: Long): Int
 
     private external fun getBuffered(handle: Long): Int
+
+    private external fun getVadBuffered(handle: Long): Int
 
     private external fun getComplete(handle: Long): Int
 
